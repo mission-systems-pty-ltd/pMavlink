@@ -1,0 +1,14 @@
+//------------------------------------------------
+// pMavlink config block
+
+ProcessConfig = pMavlink
+{
+	AppTick		= 4
+	CommsTick	= 4
+	SYS_ID		= 2
+	COMP_ID		= 0
+	TARGET_SYS	= 1
+	TARGET_COMP	= 1
+	VERBOSE_OUTPUT = Off
+}
+
