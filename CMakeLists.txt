@@ -4,8 +4,8 @@
 # Based on pMavlinkCoverter by Muthukumaran Chandrasekaran
 #--------------------------------------------------------
 cmake_minimum_required(VERSION 3.5)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $ENV{BIN_HOME})
+project(pMavlink)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $ENV{HOME}/bin)
 
 # This allows us to use the header-only JSON library
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC" )
@@ -20,27 +20,32 @@ find_package(MOOSGeodesy)
 find_package(nlohmann_json 3.5.0 CONFIG REQUIRED)
 
 set(SRC
-  Mavlink.cpp
-  Mavlink_Info.cpp
-  translation.cpp
-  main.cpp
+    Mavlink.cpp
+    Mavlink_Info.cpp
+    translation.cpp
+    main.cpp
 )
 
 add_executable(pMavlink ${SRC})
+message("+++++++++++++++++++++++++++++++++++++++++")
+message("MOOS_LIBRARIES:   " ${MOOS_DIR})
+message("MOOSGeodesy_INCLUDE_DIRS:" ${MOOSGeodesy_INCLUDE_DIRS})
+message("MOOSGeodesy_LIBRARY_PATH:" ${MOOSGeodesy_LIBRARIES})
+message("+++++++++++++++++++++++++++++++++++++++++")
 
 target_include_directories(pMavlink PUBLIC
-    $ENV{MOOSIVP_SOURCE_TREE_BASE}/include/ivp
+    ${MOOS_DIR}/../../../include/ivp
     $ENV{MAVLINK_HOME}/include/common
     ${MOOS_INCLUDE_DIRS}
     ${MOOSGeodesy_INCLUDE_DIRS}
 )
 
 target_link_libraries(pMavlink
-   $ENV{MOOSIVP_SOURCE_TREE_BASE}/lib/libmbutil.a
-   ${MOOSGeodesy_LIBRARIES}
-   ${MOOS_LIBRARIES}
-   nlohmann_json::nlohmann_json
-   boost_system
-   m
-   pthread
+    ${MOOS_DIR}/../../../lib/libmbutil.a
+    ${MOOS_LIBRARIES}
+    ${MOOSGeodesy_LIBRARIES}
+    nlohmann_json::nlohmann_json
+    boost_system
+    m
+    pthread
 )
