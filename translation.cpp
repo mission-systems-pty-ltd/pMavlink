@@ -25,23 +25,22 @@ void Mavlink::TranslateToMoos(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_HEARTBEAT:
 
-        // mavlink_heartbeat_t hb;
-        // heartbeat_received = 1;
-        // mavlink_msg_heartbeat_decode(msg, &hb);
+        mavlink_heartbeat_t hb;
+        mavlink_msg_heartbeat_decode(msg, &hb);
 
-        // fprintf(stdout, "HEARTBEAT - Hello Drone World!\n");
-        // fprintf(stdout, "    Autopilot: ");
-        // switch (hb.autopilot) {
-        // case MAV_AUTOPILOT_ARDUPILOTMEGA:
-        //     fprintf(stdout, "APM\n");
-        //     break;
-        // case MAV_AUTOPILOT_PX4:
-        //     fprintf(stdout, "PX4\n");
-        //     break;
-        // default:
-        //     fprintf(stdout, "UNKNOWN\n");
-        //     break;
-        // }
+        //fprintf(stdout, "HEARTBEAT - Hello Drone World!\n");
+        //fprintf(stdout, "    Autopilot: ");
+        switch (hb.autopilot) {
+        case MAV_AUTOPILOT_ARDUPILOTMEGA:
+            fprintf(stdout, "APM\n");
+            break;
+        case MAV_AUTOPILOT_PX4:
+            fprintf(stdout, "PX4\n");
+            break;
+        default:
+            fprintf(stdout, "UNKNOWN\n");
+            break;
+        }
 
         // armed_state = hb.base_mode & MAV_MODE_FLAG_SAFETY_ARMED;
         // fprintf(stdout, "    Armed? %s.\n", armed_state ? "Yes" : "No");
@@ -344,7 +343,6 @@ void Mavlink::TranslateToMavlink(CMOOSMsg &msg)
         // This is actually the time now...
         uint32_t time_boot_ms = (uint32_t) (get_time_usec()/1000);
         uint16_t type_mask = MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_SETPOINT;
-
         // Virtually the only message type available for PX4 off-board control
         uint16_t length = mavlink_msg_set_position_target_local_ned_pack(m_system_id, m_component_id, &mav_msg,
                                                                         time_boot_ms, m_target_system, m_target_component,
@@ -355,6 +353,83 @@ void Mavlink::TranslateToMavlink(CMOOSMsg &msg)
 
         // Send binary Mavlink message to MOOSDB for transmission by iPX4
         Notify("MAVLINK_TRANSMIT", m_buf_tx, len);
+    }
+
+    if (key == "RC_CHAN")
+    {
+        // set_channel_override
+        string sval = msg.GetString();
+        json data = json::parse(sval);
+        std::cerr << sval << std::endl;
+        mavlink_message_t tx_msg;
+        mavlink_rc_channels_override_t setch;
+
+        int rudder = -1; // Default is -1 if we don't have a new msg
+        int elevator = -1;
+        int throttle = -1;
+        int chan2 = -1;
+        int chan5 = -1;
+        int chan6 = -1;
+        int chan7 = -1;
+        int chan8 = -1;
+        //if (!data["rudder"].empty())
+            rudder   = data["rudder"];
+        //else if (!data["elevator"].empty())
+            elevator = data["elevator"];
+        //else if (!data["throttle"].empty())
+            throttle = data["throttle"];
+
+        setch.target_system = m_system_id;
+        setch.target_component = m_component_id;
+
+        if (elevator == -1)
+            setch.chan1_raw=0; //UINT16_MAX is the default for unused channels
+        else
+            setch.chan1_raw=(uint16_t) (elevator);
+
+        if (chan2 == -1)
+            setch.chan2_raw=0;
+        else
+            setch.chan2_raw=(uint16_t) chan2;
+        if (throttle == -1)
+            setch.chan3_raw=0;
+        else
+            setch.chan3_raw=(uint16_t) (throttle);
+
+        if (rudder == -1)
+            setch.chan4_raw=0;
+        else
+            setch.chan4_raw=(uint16_t) (rudder);
+
+        if ( chan5 == -1)
+            setch.chan5_raw=0;
+        else
+            setch.chan5_raw=(uint16_t) chan5;
+
+        if ( chan6 == -1)
+            setch.chan6_raw=0;
+        else
+            setch.chan6_raw=(uint16_t) chan6;
+
+        if ( chan7 == -1)
+            setch.chan7_raw=0;
+        else
+            setch.chan7_raw=(uint16_t) chan7;
+
+        if ( chan7 == -1)
+            setch.chan8_raw=0;
+        else
+            setch.chan8_raw=(uint16_t) chan7;
+
+        mavlink_msg_rc_channels_override_encode(255, 0, &tx_msg, &setch);
+        std::cerr << to_string(m_system_id) << " " << to_string(m_component_id) << " " << setch.chan1_raw <<
+           " " << setch.chan2_raw  << " " << setch.chan3_raw  << " " << setch.chan4_raw  << " " << setch.chan5_raw
+            << " " << setch.chan6_raw  << " " << setch.chan7_raw <<  " " << setch.chan8_raw << std::endl;
+        unsigned len = mavlink_msg_to_send_buffer(m_buf_tx, &tx_msg);
+
+        // Send binary Mavlink message to MOOSDB for transmission by iPX4
+        Notify("MAVLINK_TRANSMIT", m_buf_tx, len);
+
     }
 }
 

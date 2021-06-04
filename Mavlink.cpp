@@ -25,6 +25,8 @@ Mavlink::Mavlink()
   m_target_system    = 1;
   m_target_component = 1;
   m_coordinate_frame = 7;
+  send_rc = 0;
+  //rc_msg = NULL;
 
   // Allocate mavlink message buffer
   m_buf = new unsigned char [BUFFER_LENGTH];
@@ -67,7 +69,8 @@ bool Mavlink::OnNewMail(MOOSMSG_LIST &NewMail)
 			// Loop through input_buffer and update index of next non-processed byte
 			int packet_drops{0}; // when a new packet drop is detected, increment idx
 			for (int i = 0; i < len; ++i) {
-				if (mavlink_parse_char(MAVLINK_COMM_0, m_buf[i], &mav_msg, &mav_status)) {
+				//std::cout << "Message # " << std::setw(5) << mav_status.packet_rx_success_count << endl;
+                if (mavlink_parse_char(MAVLINK_COMM_0, m_buf[i], &mav_msg, &mav_status)) {
 					if (m_verbose_output) {
 						std::cout << "Message # " << std::setw(5) << mav_status.packet_rx_success_count << ": (index=";
 						if (next_msg_idx > i) {
@@ -95,7 +98,14 @@ bool Mavlink::OnNewMail(MOOSMSG_LIST &NewMail)
 			    }
 			}
 		} else {
+            std::cerr << "GOT NET MAIL\n";
+            std::cerr << key;
 			TranslateToMavlink(msg);
+            if (key == "RC_CHAN")
+            {
+                send_rc = 1;
+                rc_msg = msg;
+            }
 		}
 	}
 	return(true);
@@ -117,7 +127,11 @@ bool Mavlink::OnConnectToServer()
 
 bool Mavlink::Iterate()
 {
-	return(true);
+	// check if a rc chan command has been sent
+    // send in loop
+    //if (send_rc)
+    //    TranslateToMavlink(rc_msg);
+    return(true);
 }
 
 //---------------------------------------------------------
@@ -199,6 +213,7 @@ void Mavlink::RegisterVariables()
   Register("DESIRED_HEADING",0.0);
   Register("DESIRED_SETPOINT",0.0);
   Register("MAVLINK_RECEIVE",0.0);
+  Register("RC_CHAN",0.0);
 }
 
 void printByteStream(unsigned char * buffer, size_t size, size_t concise_length) {

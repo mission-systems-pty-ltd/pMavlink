@@ -43,7 +43,8 @@ private: // State variables
     uint8_t        m_target_system;
     uint8_t        m_target_component;
     uint8_t        m_coordinate_frame;
-
+    CMOOSMsg       rc_msg;
+    bool           send_rc= 0;
     // System time
     double m_boot_pxunix_offset_ms; // very stable, resets on connect to GPS so should not average/filter
     double m_moosunix_pxunix_offset_s;

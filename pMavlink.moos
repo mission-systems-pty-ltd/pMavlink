@@ -1,11 +1,15 @@
+LatOrigin  = -35.1118
+LongOrigin = 150.7133
+host = 192.168.42.125
+
 //------------------------------------------------
 // pMavlink config block
 
 ProcessConfig = pMavlink
 {
-	AppTick		= 4
-	CommsTick	= 4
-	SYS_ID		= 2
+	AppTick		= 1
+	CommsTick	= 1
+	SYS_ID		= 1
 	COMP_ID		= 0
 	TARGET_SYS	= 1
 	TARGET_COMP	= 1
