@@ -209,8 +209,11 @@ void Mavlink::TranslateToMoos(mavlink_message_t* msg)
 			} else {
                 // Default message
     			mavlink_message_t mav_msg;
+                uint8_t target_system = 0;  //Setting to broadcast for the moment
+                uint8_t target_component = 0;   // ^^^^
+
     			// Pack
-    			uint16_t length = mavlink_msg_timesync_pack(m_system_id, m_component_id, &mav_msg, tc1, ts1);
+                uint16_t length = mavlink_msg_timesync_pack(m_system_id, m_component_id, &mav_msg, tc1, ts1, target_system, target_component);
     			// Prepare to send over serial (iPX4 does the sending)
     			unsigned len = mavlink_msg_to_send_buffer(m_buf_tx, &mav_msg);
     			// Publish to MOOSDB
